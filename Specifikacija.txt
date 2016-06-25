@@ -1,0 +1,88 @@
+Java web aplikacija (spring framework) specifikacija
+
+:
+
+- kada korisnik na bilo koji nacin pristupi adresi 
+SERVER_ADDRESS/MY_APP_NAME/generateGuestSession
+aplikacija treba da mu uzvrati nasumicno generisan string koji sadrzi
+ cifre, velika i mala slova duzine 60 karaktera
+tako generisan string upisuje se negde na serveru
+zajedno sa stringom koji predstavlja validnu sesiju upisuje se i tacno
+ vreme kada je sesija zapocela (preciznosti do sekundi)
+(da ne bismo uplitali baze to moze da bude i tekstualni fajl aktivnesessije.txt, svaki red jedna guest sesija)
+
+.
+
+- Server na svakih 45 sekundi otvara sesijama i brise one koje su zapocele pre vise od 1800 sekundi
+
+
+
+- kada korisnik preko GET zahteva pristupi adresi
+
+SERVER_ADDRESS/MY_APP_NAME/generateUserSession
+i prosledi parametar username (dakle preko browsera recimo SERVER_ADDRESS/MY_APP_NAME/generateUserSession?username={username})
+
+takodje mu se generise i vraca string koji predstavlja sesiju kao gore 
+ukoliko username sadrzi
+	
+	- velika slova
+	
+	- mala slova
+	
+	- cifru
+
+u suprotnom vraca poruku o tome sta nije u redu sa username-om. 
+tako generisana sesija se takodje upisuje zajedno sa username-om
+ovakve sesije traju 7200 sekundi a server ih na 45 takodje cisti
+
+
+
+-korisnik preko POST zahteva pristupa
+SERVER_ADDRESS/MY_APP_NAME/storeMyData
+sa parametrima:
+
+	- session = XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+	- username = USER_NAME (opcioni parametar)
+
+	- data = SOME_JSON_DATA
+
+server vrsi proveru da li je sesija aktivna (ukoliko ima usera onda i da li sesija pripada useru)
+
+i zatim parsira SOME_JSON_DATA podatak.
+SOME_JSON_DATA je sledeceg oblika
+
+	{"name" : "NAME", "tekst" : "TEXT"}
+
+kada prikupi sve informacije on puni objekat klase StoreData (pogledati klasu dole) i poziva njegovu metodu saveToFile();
+
+
+
+- klasa StoreData koja ima sledece atribute
+
+	- name
+
+	- text
+
+	- creationTime
+
+	- username
+
+- Klasa ima sledece metode
+
+	- saveToFile() (na osnovu podataka pravi tekstualni file oblika "name.txt") i u njega upisuje text creationTime i username
+
+	- loadFromFile(String filename) cita iz fajla i puni klasu
+
+	- gettere i settere za svaki atribut
+
+na adresi:
+SERVER_ADDRESS/MY_APP_NAME/getMyData?dataName=DATA_NAME&username=USERNAME&session=XX...XXX
+
+proverava se validnost sesije
+puni se objekat klase StoreData 
+proverava se da li je to data koje pripada korisniku USERNAME i korisniku se vraca JSON
+ koji predstavlja klasu StoreData, ukoliko je StoreData sacuvana bez usera, taj podatak mogu da dobiju svi
+
+.
+
